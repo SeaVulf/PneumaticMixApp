@@ -33,6 +33,7 @@ namespace PnumSysCalc
         double DT = new double();
 
         bool flag = true;
+        bool[] flagArr = new bool[4];
 
         //Создание объектов классов для расчёта и для работы с Excel
         PneumoCalc Calc = new PneumoCalc();
@@ -144,7 +145,7 @@ namespace PnumSysCalc
 
             do //ЦИКЛ
             {
-                
+                flag = true;
                 
                 //Определение температур исходящих потоков
                 if (P[1] > P[2]) TPmax[1] = T[1];
@@ -221,6 +222,8 @@ namespace PnumSysCalc
                 //Пересчёт новых давлений
                 for (int i = 1; i < 5; i++)
                 {
+                    flagArr[i - 1] = true;
+
                     PLast[i - 1] = P[i];
 
                     P[i] = P[i] + dPdt[i] * DT;
@@ -230,13 +233,19 @@ namespace PnumSysCalc
                     PCheck.Add(P[i]);
 
                     //Проверка расхождения
-                    if (Math.Abs((P[i] - PLast[i - 1]) / PLast[i - 1]) < 0.0005) flag = false;
+                    if (Math.Abs((P[i] - PLast[i - 1]) / PLast[i - 1]) < 0.0000001) { flagArr[i - 1] = false; }
+                    else flagArr[i - 1] = true;
                 }
 
+                if (flagArr.Max() == false) flag = false;
+
                 //Определение максимального и минимального давлений
+
+                if (PCheck.LongCount() == 0) MessageBox.Show("Давления не изменятся!!!");
+                else { 
                 Pmax = PCheck.Max();
                 Pmin = PCheck.Min();
-                
+                }
 
             } while ((Pmin<=0.95* Pmax)&(flag)); //Условие окончания счёта - разница между max и min не больше 5%
 
@@ -265,7 +274,7 @@ namespace PnumSysCalc
 
             //Развёртывание окна excel, сохранение, закрытие
             myExcel.Visible = true;
-            myExcel.SaveDocument("Mine");
+           // myExcel.SaveDocument("Mine");
             myExcel.CloseDocument();
 
         }
