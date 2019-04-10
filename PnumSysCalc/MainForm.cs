@@ -41,7 +41,7 @@ namespace PnumSysCalc
 
         int pY = new int();
 
-        //Создание объектов классов для расчёта и для работы с Excel
+        //Создание объектов классов для расчёта
         PneumoCalc Calc = new PneumoCalc();
 
         public MainForm()
@@ -392,6 +392,39 @@ namespace PnumSysCalc
 
             //Развёртывание окна excel
             myExcel.Visible = true;
+
+            //ПЕРЕТИРАНИЕ ВСЕГО
+            P = new double[5];
+            PCheck = new List<double>(); //Динамический массив
+            PLast = new double[4];
+
+            dPdt = new double[5];
+            Ts = new double[5];
+            T = new double[5];
+            dTdt = new double[5];
+            dQdt = new double[5];
+            V = new double[5];
+            D = new double[6];
+            Mu = new double[6];
+            A = new int[6];
+            G = new double[6];
+            TPmax = new double[4];
+
+            PRes = new double[5, 10000000];
+            TRes = new double[5, 10000000];
+            GRes = new double[6, 10000000];
+
+            DT = new double();
+            Alpha = new double();
+
+            flag = true;
+            flagArr = new bool[4];
+
+            pY = new int();
+
+            //Создание объектов классов для расчёта
+            Calc = new PneumoCalc();
+
 
         }
 
