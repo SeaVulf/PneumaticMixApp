@@ -98,6 +98,13 @@
             this.textStep = new System.Windows.Forms.TextBox();
             this.label37 = new System.Windows.Forms.Label();
             this.label38 = new System.Windows.Forms.Label();
+            this.radioNoTerm = new System.Windows.Forms.RadioButton();
+            this.radioTerm = new System.Windows.Forms.RadioButton();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.label39 = new System.Windows.Forms.Label();
+            this.label48 = new System.Windows.Forms.Label();
+            this.textAlpha = new System.Windows.Forms.TextBox();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -248,11 +255,11 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(217, 64);
+            this.label10.Location = new System.Drawing.Point(231, 64);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(157, 13);
+            this.label10.Size = new System.Drawing.Size(117, 13);
             this.label10.TabIndex = 9;
-            this.label10.Text = "Температуры газа в сосудах:";
+            this.label10.Text = "Температуры стенки:";
             // 
             // label11
             // 
@@ -647,7 +654,7 @@
             // 
             // bCalc
             // 
-            this.bCalc.Location = new System.Drawing.Point(442, 266);
+            this.bCalc.Location = new System.Drawing.Point(750, 353);
             this.bCalc.Name = "bCalc";
             this.bCalc.Size = new System.Drawing.Size(75, 23);
             this.bCalc.TabIndex = 77;
@@ -708,11 +715,75 @@
             this.label38.TabIndex = 83;
             this.label38.Text = "мс";
             // 
+            // radioNoTerm
+            // 
+            this.radioNoTerm.AutoSize = true;
+            this.radioNoTerm.Checked = true;
+            this.radioNoTerm.Location = new System.Drawing.Point(405, 283);
+            this.radioNoTerm.Name = "radioNoTerm";
+            this.radioNoTerm.Size = new System.Drawing.Size(144, 17);
+            this.radioNoTerm.TabIndex = 84;
+            this.radioNoTerm.TabStop = true;
+            this.radioNoTerm.Text = "Без учёта теплообмена";
+            this.radioNoTerm.UseVisualStyleBackColor = true;
+            // 
+            // radioTerm
+            // 
+            this.radioTerm.AutoSize = true;
+            this.radioTerm.Location = new System.Drawing.Point(405, 302);
+            this.radioTerm.Name = "radioTerm";
+            this.radioTerm.Size = new System.Drawing.Size(140, 17);
+            this.radioTerm.TabIndex = 85;
+            this.radioTerm.Text = "С учётом теплообмена";
+            this.radioTerm.UseVisualStyleBackColor = true;
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = global::PnumSysCalc.Properties.Resources.GIF;
+            this.pictureBox1.Location = new System.Drawing.Point(580, 64);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(392, 267);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox1.TabIndex = 86;
+            this.pictureBox1.TabStop = false;
+            // 
+            // label39
+            // 
+            this.label39.AutoSize = true;
+            this.label39.Location = new System.Drawing.Point(511, 356);
+            this.label39.Name = "label39";
+            this.label39.Size = new System.Drawing.Size(61, 13);
+            this.label39.TabIndex = 89;
+            this.label39.Text = "Вт/(м^2*K)";
+            // 
+            // label48
+            // 
+            this.label48.AutoSize = true;
+            this.label48.Location = new System.Drawing.Point(402, 337);
+            this.label48.Name = "label48";
+            this.label48.Size = new System.Drawing.Size(146, 13);
+            this.label48.TabIndex = 88;
+            this.label48.Text = "Коэффициент теплоотдачи:";
+            // 
+            // textAlpha
+            // 
+            this.textAlpha.Location = new System.Drawing.Point(405, 353);
+            this.textAlpha.Name = "textAlpha";
+            this.textAlpha.Size = new System.Drawing.Size(100, 20);
+            this.textAlpha.TabIndex = 87;
+            this.textAlpha.Text = "5";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(984, 411);
+            this.Controls.Add(this.label39);
+            this.Controls.Add(this.label48);
+            this.Controls.Add(this.textAlpha);
+            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.radioTerm);
+            this.Controls.Add(this.radioNoTerm);
             this.Controls.Add(this.label38);
             this.Controls.Add(this.label37);
             this.Controls.Add(this.textStep);
@@ -784,7 +855,9 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Name = "MainForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Расчёт пневматической системы";
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -862,6 +935,12 @@
         private System.Windows.Forms.TextBox textStep;
         private System.Windows.Forms.Label label37;
         private System.Windows.Forms.Label label38;
+        private System.Windows.Forms.RadioButton radioNoTerm;
+        private System.Windows.Forms.RadioButton radioTerm;
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.Label label39;
+        private System.Windows.Forms.Label label48;
+        private System.Windows.Forms.TextBox textAlpha;
     }
 }
 

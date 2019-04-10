@@ -25,6 +25,11 @@ namespace PnumSysCalc
             return Mu * Math.PI * D * D / 4;
         }
 
+        public double Surface(double V)
+        {
+            return Math.PI*Math.Pow(6*V/Math.PI,2/3);
+        }
+
         /// <summary>
         /// Определение направления расхода
         /// </summary>

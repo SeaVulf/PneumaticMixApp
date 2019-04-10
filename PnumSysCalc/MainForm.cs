@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace PnumSysCalc
 {
@@ -17,8 +18,10 @@ namespace PnumSysCalc
         double[] PLast = new double[4];
 
         double[] dPdt = new double[5];
+        double[] Ts = new double[5];
         double[] T = new double[5];
         double[] dTdt = new double[5];
+        double[] dQdt = new double[5];
         double[] V = new double[5];
         double[] D = new double[6];
         double[] Mu = new double[6];
@@ -31,13 +34,15 @@ namespace PnumSysCalc
         double[,] GRes = new double[6, 10000000];
 
         double DT = new double();
+        double Alpha = new double();
 
         bool flag = true;
         bool[] flagArr = new bool[4];
 
+        int pY = new int();
+
         //Создание объектов классов для расчёта и для работы с Excel
         PneumoCalc Calc = new PneumoCalc();
-        Excel myExcel = new Excel();
 
         public MainForm()
         {
@@ -63,6 +68,11 @@ namespace PnumSysCalc
                 T[3] = double.Parse(textT3.Text);
                 T[4] = double.Parse(textT4.Text);
 
+                Ts[1] = double.Parse(textT1.Text);
+                Ts[2] = double.Parse(textT2.Text);
+                Ts[3] = double.Parse(textT3.Text);
+                Ts[4] = double.Parse(textT4.Text);
+
                 V[1] = double.Parse(textV1.Text) * Math.Pow(10, -3);
                 V[2] = double.Parse(textV2.Text) * Math.Pow(10, -3);
                 V[3] = double.Parse(textV3.Text) * Math.Pow(10, -3);
@@ -81,7 +91,9 @@ namespace PnumSysCalc
                 Mu[5] = double.Parse(textMu334.Text);
 
                 DT = double.Parse(textStep.Text)/1000;
-
+                if (radioTerm.Checked == true)
+                    Alpha = double.Parse(textAlpha.Text);
+                else Alpha = 0;
             }
             catch (Exception)
             {
@@ -97,7 +109,79 @@ namespace PnumSysCalc
         /// <param name="e"></param>
         private void bCalc_Click(object sender, EventArgs e)
         {
+            //Удаление лишних процессов Excel
+            try
+            {
+                foreach (Process proc in Process.GetProcessesByName("Microsoft Excel"))
+                {
+                    proc.Kill();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                
+            }
+
+
+            Excel myExcel = new Excel();
             myExcel.NewDocument();//Создание нового документа Excel
+
+            //Создание объектов класса Графическое окно и их настройка
+            ChartForm PChart = new ChartForm
+            {
+                Location = new Point(this.Location.X, this.Location.Y + 450 + pY),
+                Text = "График P (" + (pY / 50).ToString() + ")"
+            };
+
+            //Инициализация графика
+            PChart.Show();
+            PChart.chart.ChartAreas[0].AxisY.Title = "p, кПа";
+            PChart.chart.ChartAreas[0].AxisY.Interval = 200;
+
+            ChartForm TChart = new ChartForm
+            {
+                StartPosition = FormStartPosition.Manual,
+                Location = new Point(PChart.Location.X + 650, PChart.Location.Y),
+                Text = "График T (" + (pY / 50).ToString() + ")"
+            };
+
+            TChart.Show();
+            TChart.chart.ChartAreas[0].AxisY.Title = "T, K";
+            TChart.chart.ChartAreas[0].AxisY.Interval = 25;
+
+            ChartForm GChart = new ChartForm
+            {
+                StartPosition = FormStartPosition.Manual,
+                Location = new Point(TChart.Location.X + 650, PChart.Location.Y),
+                Text = "График G (" + (pY / 50).ToString() + ")"
+            };
+
+            GChart.Show();
+            GChart.chart.ChartAreas[0].AxisY.Title = "G, г/c";
+            GChart.chart.ChartAreas[0].AxisY.Interval = 0.10;
+
+            pY = pY + 50;
+            
+            //Настройка графиков
+            for (int i = 0; i<4; i++)
+            {
+                PChart.chart.Series.Add("P"+(i+1).ToString());
+                PChart.chart.Series[i].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+                PChart.chart.Series[i].BorderWidth = 3;
+
+                TChart.chart.Series.Add("T" + (i + 1).ToString());
+                TChart.chart.Series[i].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+                TChart.chart.Series[i].BorderWidth = 3;
+
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                GChart.chart.Series.Add("G" + (i + 1).ToString());
+                GChart.chart.Series[i].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+                GChart.chart.Series[i].BorderWidth = 3;
+            }
 
             //Получение данных газовой постоянной и показателя адиабаты
             double R = Calc.R;
@@ -109,12 +193,19 @@ namespace PnumSysCalc
             //Определение данных
             ReadData();
 
-            double[] F = new double[6];
+            double[] F = new double[6]; //Эффективное сечение
             
             //Определение Эффективных сечений
             for(int i=1; i<6; i++)
             {
                 F[i] = Calc.Section(Mu[i], D[i]);
+            }
+
+            double[] S = new double[5]; //Площадь поверхности
+
+            for (int i = 1; i < 5; i++)
+            {
+                S[i] = Calc.Surface(V[1]);
             }
 
             int n = 0;
@@ -142,10 +233,8 @@ namespace PnumSysCalc
             myExcel.SetValue("N1", "G334,г/c");
 
 
-
             do //ЦИКЛ
             {
-                flag = true;
                 
                 //Определение температур исходящих потоков
                 if (P[1] > P[2]) TPmax[1] = T[1];
@@ -167,6 +256,12 @@ namespace PnumSysCalc
                 G[3] = Calc.Flow(F[3], P[3], P[4], TPmax[3]);
                 G[5] = Calc.Flow(F[5], P[3], P[4], TPmax[3]);
 
+                //Определение тепловых потоков
+                for (int i =1; i<5; i++)
+                {
+                    dQdt[i] = Alpha * S[i] * (Ts[i] - T[i]);
+                }
+
                 //Вывод текущих данных в матрицу
                 for (int i = 0; i < 4; i++)
                 {
@@ -176,9 +271,9 @@ namespace PnumSysCalc
                 }
                 GRes[4,n] = G[5];
                 
-                //Вывод данных в Excel
+                
                 if ((n % gt == 0) | (n == 0))  {
-
+                    //Вывод данных в Excel
                     lbl = ((int)(n / gt) + 2).ToString();//переменная номера ячейки excel
 
 
@@ -200,23 +295,34 @@ namespace PnumSysCalc
                 myExcel.SetValue("M" + lbl, (Math.Round(GRes[3, n] * 1000, 2)).ToString());
                 myExcel.SetValue("N" + lbl, (Math.Round(GRes[4, n] * 1000, 2)).ToString());
 
+                    //Вывод данных на график
+                    for (int i = 0; i < 4; i++)
+                    {
+                        PChart.chart.Series[i].Points.AddXY(Math.Round(tt, 3), PRes[i, n] / 1000);
+                        TChart.chart.Series[i].Points.AddXY(Math.Round(tt, 3), TRes[i, n]);
+                    }
+                    for (int i = 0; i < 5; i++)
+                    {
+                        GChart.chart.Series[i].Points.AddXY(Math.Round(tt, 3), GRes[i, n] * 1000);
+                    }
+
                 }
 
                 n = n+1;
                 tt = tt + DT;
 
                 //Определение изменений давления и температуры
-                dPdt[2] = -1 * K * R / V[2] * TPmax[1] * (G[1]+ G[4]);
-                dTdt[2] = T[2] / (P[2] * V[2]) * (V[2] * dPdt[2] - (-1)*R* T[2]*(G[1] + G[4]));
+                dPdt[2] = -1 * K * R / V[2] * TPmax[1] * (G[1]+ G[4]) + K/ V[2] * (K - 1)* dQdt[2];
+                dTdt[2] = T[2] / (P[2] * V[2]) * (V[2] * dPdt[2] - (-1)*R* T[2]*(G[1] + G[4]) + (K - 1) * dQdt[2]);
 
-                dPdt[1] = K * R / V[1] * (TPmax[1] * (G[1] + G[4])- TPmax[2]* G[2]);
-                dTdt[1] = T[1] / (P[1] * V[1]) * (V[1] * dPdt[1] - R * T[1] * (G[1] + G[4]- G[2]));
+                dPdt[1] = K * R / V[1] * (TPmax[1] * (G[1] + G[4])- TPmax[2]* G[2]) + K / V[1] * (K - 1) * dQdt[1];
+                dTdt[1] = T[1] / (P[1] * V[1]) * (V[1] * dPdt[1] - R * T[1] * (G[1] + G[4]- G[2]) + (K - 1) * dQdt[1]);
 
-                dPdt[3] = K * R / V[3] * (TPmax[2] * G[2] - TPmax[3] * (G[3]+G[5]));
-                dTdt[3] = T[3] / (P[3] * V[3]) * (V[3] * dPdt[3] - R * T[3] * (G[2] - (G[3] + G[5])));
+                dPdt[3] = K * R / V[3] * (TPmax[2] * G[2] - TPmax[3] * (G[3]+G[5])) + K / V[3] * (K - 1) * dQdt[3];
+                dTdt[3] = T[3] / (P[3] * V[3]) * (V[3] * dPdt[3] - R * T[3] * (G[2] - (G[3] + G[5])) + (K - 1) * dQdt[3]);
 
-                dPdt[4] = K * R / V[4] * (TPmax[3] * (G[3] + G[5]));
-                dTdt[4] = T[4] / (P[4] * V[4]) * (V[4] * dPdt[4] - R * T[4] * (G[3] + G[5]));
+                dPdt[4] = K * R / V[4] * (TPmax[3] * (G[3] + G[5])) + K / V[4] * (K - 1) * dQdt[4];
+                dTdt[4] = T[4] / (P[4] * V[4]) * (V[4] * dPdt[4] - R * T[4] * (G[3] + G[5]) + (K - 1) * dQdt[4]);
 
                 PCheck.Clear(); //Очистка динамического массива
                 //Пересчёт новых давлений
@@ -249,7 +355,6 @@ namespace PnumSysCalc
 
             } while ((Pmin<=0.95* Pmax)&(flag)); //Условие окончания счёта - разница между max и min не больше 5%
 
-
             lbl = ((int)(n / gt) + 3).ToString();
             n--;
 
@@ -272,13 +377,25 @@ namespace PnumSysCalc
             myExcel.SetValue("M" + lbl, (Math.Round(GRes[3, n] * 1000, 2)).ToString());
             myExcel.SetValue("N" + lbl, (Math.Round(GRes[4, n] * 1000, 2)).ToString());
 
-            //Развёртывание окна excel, сохранение, закрытие
+            for (int i = 0; i < 4; i++)
+            {
+                PChart.chart.Series[i].Points.AddXY(Math.Round(tt, 3), PRes[i, n] / 1000);
+                TChart.chart.Series[i].Points.AddXY(Math.Round(tt, 3), TRes[i, n]);
+                
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                GChart.chart.Series[i].Points.AddXY(Math.Round(tt, 3), GRes[i, n] * 1000);
+            }
+         
+
+            //Развёртывание окна excel
             myExcel.Visible = true;
-           // myExcel.SaveDocument("Mine");
-            myExcel.CloseDocument();
 
         }
 
        
     }
+    
 }
