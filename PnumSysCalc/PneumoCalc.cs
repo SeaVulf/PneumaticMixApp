@@ -5,14 +5,23 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace PnumSysCalc
+namespace PnumMixCalc
 {
     public class PneumoCalc
     {
-        //Газовая постоянная воздуха, показатель адиабаты и критическое отношение давлений
-        public readonly double R = 287.2;
-        public readonly double K = 1.41;
-        public readonly double BK = 0.528;
+        //Газовая постоянная и показатель адиабаты для воздуха и Не
+        public readonly double RAir = 287.2;
+        public readonly double KAir = 1.41;
+
+        public readonly double RHe = 287.2;
+        public readonly double KHe = 1.41;
+
+        // public readonly double BK = 0.528;
+
+        public double BKr(double K)
+        {
+            return Math.Pow(2/(K+1),K/(K-1));
+        }
 
         /// <summary>
         /// Определение эффективной площади поперечного сечения условного сопротивления
@@ -56,6 +65,11 @@ namespace PnumSysCalc
                 //Определение максимальных давлений
                 double pA = Math.Max(pL, pR);
                 double pB = Math.Min(pL, pR);
+
+                //Заглушка
+                double BK = BKr(KAir);
+                double K = KAir;
+                double R = RAir;
 
                 //Расчёт расхода с учётом направления истечения
                 double G = FlowDirection(pL, pR) * F * pA * Math.Sqrt(2 * K / ((K - 1) * R * TpA)) * Math.Sqrt(Math.Pow(Math.Max(pB / pA, BK), 2 / K) - Math.Pow(Math.Max(pB / pA, BK), (K + 1) / K));

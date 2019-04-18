@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace PnumSysCalc.Properties {
+namespace PnumMixCalc.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace PnumSysCalc.Properties {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("PnumSysCalc.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("PnumMixCalc.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -63,9 +63,9 @@ namespace PnumSysCalc.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap GIF {
+        public static System.Drawing.Bitmap GIF1 {
             get {
-                object obj = ResourceManager.GetObject("GIF", resourceCulture);
+                object obj = ResourceManager.GetObject("GIF1", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

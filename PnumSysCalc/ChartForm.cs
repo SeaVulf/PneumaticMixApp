@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace PnumSysCalc
+namespace PnumMixCalc
 {
     public partial class ChartForm : Form
     {

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2047
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PnumSysCalc", "PnumSysCalc\PnumSysCalc.csproj", "{FD495CF4-F9F7-4360-B192-215B2A2AF107}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PnumMixCalc", "PnumSysCalc\PnumMixCalc.csproj", "{FD495CF4-F9F7-4360-B192-215B2A2AF107}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

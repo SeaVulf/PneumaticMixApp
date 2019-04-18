@@ -1,4 +1,4 @@
-﻿namespace PnumSysCalc
+﻿namespace PnumMixCalc
 {
     partial class ChartForm
     {
