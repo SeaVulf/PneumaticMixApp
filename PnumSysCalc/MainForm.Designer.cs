@@ -469,22 +469,22 @@
             // radioNoTerm
             // 
             this.radioNoTerm.AutoSize = true;
-            this.radioNoTerm.Checked = true;
             this.radioNoTerm.Location = new System.Drawing.Point(15, 252);
             this.radioNoTerm.Name = "radioNoTerm";
             this.radioNoTerm.Size = new System.Drawing.Size(144, 17);
             this.radioNoTerm.TabIndex = 84;
-            this.radioNoTerm.TabStop = true;
             this.radioNoTerm.Text = "Без учёта теплообмена";
             this.radioNoTerm.UseVisualStyleBackColor = true;
             // 
             // radioTerm
             // 
             this.radioTerm.AutoSize = true;
+            this.radioTerm.Checked = true;
             this.radioTerm.Location = new System.Drawing.Point(15, 271);
             this.radioTerm.Name = "radioTerm";
             this.radioTerm.Size = new System.Drawing.Size(140, 17);
             this.radioTerm.TabIndex = 85;
+            this.radioTerm.TabStop = true;
             this.radioTerm.Text = "С учётом теплообмена";
             this.radioTerm.UseVisualStyleBackColor = true;
             // 
@@ -512,7 +512,7 @@
             this.textAlpha.Name = "textAlpha";
             this.textAlpha.Size = new System.Drawing.Size(100, 20);
             this.textAlpha.TabIndex = 87;
-            this.textAlpha.Text = "5";
+            this.textAlpha.Text = "2";
             // 
             // label19
             // 
@@ -534,12 +534,12 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = global::PnumMixCalc.Properties.Resources.GIF1;
+            this.pictureBox1.Image = global::PnumMixCalc.Properties.Resources.Расч_схема;
             this.pictureBox1.Location = new System.Drawing.Point(600, 24);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(298, 267);
+            this.pictureBox1.Size = new System.Drawing.Size(303, 276);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBox1.TabIndex = 86;
+            this.pictureBox1.TabIndex = 92;
             this.pictureBox1.TabStop = false;
             // 
             // MainForm
@@ -547,12 +547,12 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(906, 324);
+            this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.label20);
             this.Controls.Add(this.label19);
             this.Controls.Add(this.label39);
             this.Controls.Add(this.label48);
             this.Controls.Add(this.textAlpha);
-            this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.radioTerm);
             this.Controls.Add(this.radioNoTerm);
             this.Controls.Add(this.label38);
@@ -656,12 +656,12 @@
         private System.Windows.Forms.Label label38;
         private System.Windows.Forms.RadioButton radioNoTerm;
         private System.Windows.Forms.RadioButton radioTerm;
-        private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Label label39;
         private System.Windows.Forms.Label label48;
         private System.Windows.Forms.TextBox textAlpha;
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Label label20;
+        private System.Windows.Forms.PictureBox pictureBox1;
     }
 }
 

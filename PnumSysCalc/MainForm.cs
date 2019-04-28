@@ -13,8 +13,10 @@ namespace PnumMixCalc
 {
     public partial class MainForm : Form
     {
+        //Инициализация переменных
+        const int countOfArr = 10000000;
         double[] P = new double[4];
-        List<double> PCheck = new List<double>(); //Динамический массив
+        List<double> PCheck = new List<double>(); //Динамический массив давлений
         double[] PLast = new double[3];
 
         double[] dPdt = new double[4];
@@ -28,19 +30,16 @@ namespace PnumMixCalc
         double[] G = new double[3];
         double[] TPmax = new double[3];
 
-        double[,] PRes = new double[4, 10000000];
-        double[,] TRes = new double[4, 10000000];
-        double[,] GRes = new double[3, 10000000];
+        double[,] PRes = new double[4, countOfArr];
+        double[,] TRes = new double[4, countOfArr];
+        double[,] GRes = new double[3, countOfArr];
 
         double DT = new double();
         double Alpha = new double();
 
-        bool flag = true;
-        bool[] flagArr = new bool[3];
+        int pY = new int(); //Переменная для сдвига окон графиков
 
-        int pY = new int();
-
-        //Создание объектов классов для расчёта
+        //Создание объектов класса рассчёта системы
         PneumoCalc Calc = new PneumoCalc();
 
         public MainForm()
@@ -80,6 +79,8 @@ namespace PnumMixCalc
                 Mu[2] = double.Parse(textMu13.Text);
 
                 DT = double.Parse(textStep.Text)/1000;
+
+                //Определение модели расчёта (с теплообменом или без)
                 if (radioTerm.Checked == true)
                     Alpha = double.Parse(textAlpha.Text);
                 else Alpha = 0;
@@ -112,18 +113,17 @@ namespace PnumMixCalc
                 
             }
 
-
+            //Создание нового документа Excel
             Excel myExcel = new Excel();
-            myExcel.NewDocument();//Создание нового документа Excel
+            myExcel.NewDocument();
 
-            //Создание объектов класса Графическое окно и их настройка
+            //Создание объектов класса Графическое окно, их настройка и инициализация
             ChartForm PChart = new ChartForm
             {
                 Location = new Point(this.Location.X, this.Location.Y + 450 + pY),
                 Text = "График P (" + (pY / 50).ToString() + ")"
             };
 
-            //Инициализация графика
             PChart.Show();
             PChart.chart.ChartAreas[0].AxisY.Title = "p, кПа";
             PChart.chart.ChartAreas[0].AxisY.Interval = 200;
@@ -150,7 +150,19 @@ namespace PnumMixCalc
             GChart.chart.ChartAreas[0].AxisY.Title = "G, г/c";
             GChart.chart.ChartAreas[0].AxisY.Interval = 0.10;
 
-            pY = pY + 50;
+            //Вывод по массовой концентрации
+            ChartForm MChart = new ChartForm
+            {
+                StartPosition = FormStartPosition.Manual,
+                Location = new Point(GChart.Location.X, PChart.Location.Y - 440),
+                Text = "График g (" + (pY / 50).ToString() + ")"
+            };
+
+            MChart.Show();
+            MChart.chart.ChartAreas[0].AxisY.Title = "g";
+            MChart.chart.ChartAreas[0].AxisY.Interval = 0.1;
+
+            pY = pY + 50; //Сдвиг для новых окон (при следующем нажатии на кнопку)
             
             //Настройка графиков
             for (int i = 0; i<3; i++)
@@ -170,23 +182,27 @@ namespace PnumMixCalc
                 GChart.chart.Series.Add("G" + (i + 1).ToString());
                 GChart.chart.Series[i].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
                 GChart.chart.Series[i].BorderWidth = 3;
+
+                MChart.chart.Series.Add("g" + (i + 1).ToString());
+                MChart.chart.Series[i].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+                MChart.chart.Series[i].BorderWidth = 3;
             }
 
-            //Получение данных газовой постоянной и показателя адиабаты
-            double R = Calc.RAir;
+            //Получение данных газовой постоянной и показателя адиабаты для воздуха и гелия
+            double RAir = Calc.RAir;
             double KAir = Calc.KAir;
-            double K = Calc.KAir;
 
-            //Проверка работоспособности функции
-            double cHeck = Calc.BKr(KAir);
+            double RHe = Calc.RHe;
+            double KHe = Calc.KHe;
 
+            //Инициализация переменных для анализа max/min
             double Pmax = new double();
             double Pmin = new double();
 
-            //Определение данных
+            //Чтение данных с окна формы
             ReadData();
 
-            double[] F = new double[4]; //Эффективное сечение
+            double[] F = new double[3]; //Эффективное сечение
             
             //Определение Эффективных сечений
             for(int i=1; i<3; i++)
@@ -222,6 +238,27 @@ namespace PnumMixCalc
             myExcel.SetValue("J1", "G12,г/c");
             myExcel.SetValue("K1", "G13,г/c");
 
+            myExcel.SetValue("M1", "gHe");
+            myExcel.SetValue("N1", "gAir");
+
+            //Определение начальной массы воздуха в сосуде смеси (Согласно ТЗ, там имелся воздух)
+            double MAir = P[1] * V[1] / (RAir * T[1]);
+            
+            //Инициализация переменной массы по гелию
+            double MHe = 0;
+
+            //Инициализация массовых концентраций
+            double [] gHe = new double [countOfArr];
+            double[] gAir = new double[countOfArr];
+
+            //Массовая концентрация в начальный момент времени
+            gAir [0] = 1;
+            gHe [0] = 0;
+
+            //Инициализация показателя адиабаты и удельной газовой постоянной для смеси
+            double K = 0;
+            double R = 0;
+
             do //ЦИКЛ
             {
                 
@@ -234,11 +271,21 @@ namespace PnumMixCalc
 
 
                 //Определение расходов
-                G[1] = Calc.Flow(F[1], P[2], P[1], TPmax[1]);
+                G[1] = Calc.Flow(F[1], P[2], P[1], TPmax[1], Gases.He);
 
-                G[2] = Calc.Flow(F[2], P[1], P[3], TPmax[2]);
+                G[2] = Calc.Flow(F[2], P[1], P[3], TPmax[2], Gases.Air);
 
-//TODO - учитывать газы!!!
+                //Определение масс после натекания за промежуток времени DT
+                MAir = MAir - G[2] * DT; //Знак "минус" связан с тем, что расход имеет знак, и для воздуха он отрицательный (газ течёт против оси OX)
+                MHe = MHe + G[1] * DT;
+
+                //Определение Массовых концентраций
+                gAir[n+1] = MAir /(MAir + MHe);
+                gHe[n+1] = MHe / (MAir + MHe);
+
+                //Определение показателя адиабаты и удельной газовой постоянной
+                K = KHe * gHe[n + 1] + KAir * (1 - gHe[n + 1]);
+                R = RHe * gHe[n + 1] + RAir * (1 - gHe[n + 1]);
 
                 //Определение тепловых потоков
                 for (int i =1; i<4; i++)
@@ -256,23 +303,32 @@ namespace PnumMixCalc
                 PRes[2, n] = P[2 + 1];
                 TRes[2, n] = T[2 + 1];
 
-                if ((n % gt == 0) | (n == 0))  {
+                //БЛОК ВЫВОДА
+                if ((n % gt == 0) | (n == 0))
+                {
                     //Вывод данных в Excel
                     lbl = ((int)(n / gt) + 2).ToString();//переменная номера ячейки excel
 
+                    myExcel.SetValue("A" + lbl, (Math.Round(tt,3)).ToString());
 
-                myExcel.SetValue("A" + lbl, (Math.Round(tt,3)).ToString());
+                    myExcel.SetValue("B" + lbl, (Math.Round(PRes[0, n])).ToString());
+                    myExcel.SetValue("C" + lbl, (Math.Round(PRes[1, n])).ToString());
+                    myExcel.SetValue("D" + lbl, (Math.Round(PRes[2, n])).ToString());
 
-                myExcel.SetValue("B" + lbl, (Math.Round(PRes[0, n])).ToString());
-                myExcel.SetValue("C" + lbl, (Math.Round(PRes[1, n])).ToString());
-                myExcel.SetValue("D" + lbl, (Math.Round(PRes[2, n])).ToString());
+                    myExcel.SetValue("F" + lbl, (Math.Round(TRes[0, n],1)).ToString());
+                    myExcel.SetValue("G" + lbl, (Math.Round(TRes[1, n],1)).ToString());
+                    myExcel.SetValue("H" + lbl, (Math.Round(TRes[2, n],1)).ToString());
 
-                myExcel.SetValue("F" + lbl, (Math.Round(TRes[0, n],1)).ToString());
-                myExcel.SetValue("G" + lbl, (Math.Round(TRes[1, n],1)).ToString());
-                myExcel.SetValue("H" + lbl, (Math.Round(TRes[2, n],1)).ToString());
+                    myExcel.SetValue("J" + lbl, (Math.Round(GRes[0, n] * 1000, 2)).ToString());
+                    myExcel.SetValue("K" + lbl, (Math.Round(GRes[1, n] * 1000, 2)).ToString());
 
-                myExcel.SetValue("J" + lbl, (Math.Round(GRes[0, n] * 1000, 2)).ToString());
-                myExcel.SetValue("K" + lbl, (Math.Round(GRes[1, n] * 1000, 2)).ToString());
+                    myExcel.SetValue("M" + lbl, (Math.Round(gHe[n], 3)).ToString());
+                    myExcel.SetValue("N" + lbl, (Math.Round(gAir[n], 3)).ToString());
+
+
+                    //Вывод графиков концентраций
+                    MChart.chart.Series[0].Points.AddXY(Math.Round(tt, 3), Math.Round(gHe[n], 3));
+                    MChart.chart.Series[1].Points.AddXY(Math.Round(tt, 3), Math.Round(gAir[n], 3));
 
                     //Вывод данных на график
                     for (int i = 0; i < 3; i++)
@@ -290,25 +346,21 @@ namespace PnumMixCalc
                 n = n+1;
                 tt = tt + DT;
 
-//TODO
                 //Определение изменений давления и температуры
-                dPdt[2] = -1 * K * R / V[2] * TPmax[1] * (G[1]+ G[4]) + K/ V[2] * (K - 1)* dQdt[2];
-                dTdt[2] = T[2] / (P[2] * V[2]) * (V[2] * dPdt[2] - (-1)*R* T[2]*(G[1] + G[4]) + (K - 1) * dQdt[2]);
+                dPdt[2] = -1 * KHe * RHe / V[2] * TPmax[1] * G[1] + KHe / V[2] * (KHe - 1)* dQdt[2];
+                dTdt[2] = T[2] / (P[2] * V[2]) * (V[2] * dPdt[2] - (-1)* RHe * T[2]*G[1] + (KHe - 1) * dQdt[2]);
 
-                dPdt[1] = K * R / V[1] * (TPmax[1] * (G[1] + G[4])- TPmax[2]* G[2]) + K / V[1] * (K - 1) * dQdt[1];
-                dTdt[1] = T[1] / (P[1] * V[1]) * (V[1] * dPdt[1] - R * T[1] * (G[1] + G[4]- G[2]) + (K - 1) * dQdt[1]);
+                dPdt[1] = K * R / V[1] * (TPmax[1] * G[1]- TPmax[2]* G[2]) + K / V[1] * (K - 1) * dQdt[1];
+                dTdt[1] = T[1] / (P[1] * V[1]) * (V[1] * dPdt[1] - R * T[1] * (G[1] - G[2]) + (K - 1) * dQdt[1]);
 
-                dPdt[3] = K * R / V[3] * (TPmax[2] * G[2] - TPmax[3] * (G[3]+G[5])) + K / V[3] * (K - 1) * dQdt[3];
-                dTdt[3] = T[3] / (P[3] * V[3]) * (V[3] * dPdt[3] - R * T[3] * (G[2] - (G[3] + G[5])) + (K - 1) * dQdt[3]);
-
-                dPdt[4] = K * R / V[4] * (TPmax[3] * (G[3] + G[5])) + K / V[4] * (K - 1) * dQdt[4];
-                dTdt[4] = T[4] / (P[4] * V[4]) * (V[4] * dPdt[4] - R * T[4] * (G[3] + G[5]) + (K - 1) * dQdt[4]);
+                dPdt[3] = KAir * RAir / V[3] * (TPmax[2] * G[2]) + KAir / V[3] * (KAir - 1) * dQdt[3];
+                dTdt[3] = T[3] / (P[3] * V[3]) * (V[3] * dPdt[3] - RAir * T[3] * G[2] + (KAir - 1) * dQdt[3]);
 
                 PCheck.Clear(); //Очистка динамического массива
+                
                 //Пересчёт новых давлений
-                for (int i = 1; i < 5; i++)
+                for (int i = 1; i < 4; i++)
                 {
-                    flagArr[i - 1] = true;
 
                     PLast[i - 1] = P[i];
 
@@ -318,27 +370,26 @@ namespace PnumMixCalc
                     if (P[i] != PLast[i - 1]) //Если давление изменяется, то добавить к сравнению
                     PCheck.Add(P[i]);
 
-                    //Проверка расхождения
-                    if (Math.Abs((P[i] - PLast[i - 1]) / PLast[i - 1]) < 0.0000001) { flagArr[i - 1] = false; }
-                    else flagArr[i - 1] = true;
                 }
 
-                if (flagArr.Max() == false) flag = false;
-
-                //Определение максимального и минимального давлений
-
-                if (PCheck.LongCount() == 0) MessageBox.Show("Давления не изменятся!!!");
-                else { 
-                Pmax = PCheck.Max();
-                Pmin = PCheck.Min();
+                //Определение максимального и минимального давлений, если есть, что сравнивать
+                if (PCheck.LongCount() == 0)
+                {
+                    MessageBox.Show("Давления не изменятся!!!");
+                    break;
+                }
+                else
+                {
+                    Pmax = PCheck.Max();
+                    Pmin = PCheck.Min();
                 }
 
-            } while ((Pmin<=0.95* Pmax)&(flag)); //Условие окончания счёта - разница между max и min не больше 5%
+            } while (Pmin<= 0.95*Pmax); //Условие окончания счёта - разница между max и min не больше 5%
 
             lbl = ((int)(n / gt) + 3).ToString();
             n--;
 
-            //Вывод последних значений следующих величин: расходов, давлений, температур
+            //Вывод последних значений следующих величин: расходов, давлений, температур и массовых концентраций
             myExcel.SetValue("A" + lbl, (Math.Round(tt, 3)).ToString());
 
             myExcel.SetValue("B" + lbl, (Math.Round(PRes[0, n])).ToString());
@@ -352,6 +403,10 @@ namespace PnumMixCalc
             myExcel.SetValue("J" + lbl, (Math.Round(GRes[0, n] * 1000, 2)).ToString());
             myExcel.SetValue("K" + lbl, (Math.Round(GRes[1, n] * 1000, 2)).ToString());
 
+            myExcel.SetValue("M" + lbl, (Math.Round(gHe[n], 3)).ToString());
+            myExcel.SetValue("N" + lbl, (Math.Round(gAir[n], 3)).ToString());
+
+
             //Вывод данных на график
             for (int i = 0; i < 3; i++)
             {
@@ -362,13 +417,14 @@ namespace PnumMixCalc
             {
                 GChart.chart.Series[i].Points.AddXY(Math.Round(tt, 3), GRes[i, n] * 1000);
             }
-      
-        //Развёртывание окна excel
-        myExcel.Visible = true;
 
+            //Вывод графиков концентраций
+            MChart.chart.Series[0].Points.AddXY(Math.Round(tt, 3), Math.Round(gHe[n + 1], 3));
+            MChart.chart.Series[1].Points.AddXY(Math.Round(tt, 3), Math.Round(gAir[n + 1], 3));
 
-  //TODO
-            //ПЕРЕТИРАНИЕ ВСЕГО
+            //Развёртывание окна excel
+            myExcel.Visible = true;
+
         }
 
     }

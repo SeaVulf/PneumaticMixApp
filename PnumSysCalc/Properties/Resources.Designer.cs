@@ -63,9 +63,9 @@ namespace PnumMixCalc.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap GIF1 {
+        public static System.Drawing.Bitmap Расч_схема {
             get {
-                object obj = ResourceManager.GetObject("GIF1", resourceCulture);
+                object obj = ResourceManager.GetObject("Расч_схема", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
